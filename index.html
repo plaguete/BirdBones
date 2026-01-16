@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BIRD BONES † </title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Special+Elite&family=Rock+Salt&family=Permanent+Marker&family=VT323&display=swap');
+
+        /* --- TELA DE LOADING (NOVO) --- */
+        #loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            z-index: 99999; /* Fica acima de tudo */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.8s ease-out, visibility 0.8s;
+        }
+
+        /* Classe para esconder o loader via JS */
+        #loader.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        #loader img {
+            max-width: 300px; /* Tamanho máximo da imagem */
+            width: 80%;
+            height: auto;
+            animation: pulse-trash 0.5s infinite alternate; /* Animação estilo punk */
+        }
+
+        /* Efeito de "respiração" rápida/agressiva na imagem */
+        @keyframes pulse-trash {
+            from { transform: scale(1) rotate(-2deg); filter: contrast(100%); }
+            to { transform: scale(1.1) rotate(2deg); filter: contrast(150%); }
+        }
+
+        /* --- CONFIGURAÇÕES GERAIS --- */
+        * {
+            box-sizing: border-box;
+            cursor: default;
+        }
+
+        body {
+            background-color: #1a1a1a;
+            background-image: url('https://www.transparenttextures.com/patterns/dark-wall.png');
+            color: #000;
+            font-family: 'Special Elite', monospace;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding-top: 20px;
+            padding-bottom: 50px;
+        }
+
+        a { color: #8b0000; text-decoration: none; font-weight: bold; }
+        a:hover { text-decoration: underline; background: #ffff00; color: #000; }
+
+        /* --- O QUADRO DE AVISOS (CORKBOARD) --- */
+        .bulletin-board {
+            max-width: 1050px;
+            width: 95%;
+            background-color: #d2b48c; 
+            
+            background-image: url('corkboard.jpeg'); 
+            
+            border: 25px solid #5c4033; 
+            border-image-source: url('wood.jpeg');
+            border-image-repeat: round; 
+            border-image-slice: 30; 
+
+            border-radius: 2px;
+            box-shadow: 
+                inset 0 0 30px rgba(0,0,0,0.6), 
+                0 20px 50px rgba(0,0,0,0.8);
+            position: relative;
+            padding: 40px;
+            min-height: 900px;
+        }
+
+        /* --- HEADER --- */
+        header {
+            background: #fdfdfd;
+            background-image: url('textura-de-papel-branco_1194-2301.jpg');
+            padding: 20px;
+            text-align: center;
+            transform: rotate(-1deg);
+            box-shadow: 3px 3px 10px rgba(0,0,0,0.3);
+            margin-bottom: 40px;
+            position: relative;
+            border: 1px solid #ccc;
+        }
+
+        /* Novo container para segurar Título e Imagem lado a lado */
+        .title-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px; /* Distância entre o texto e o pássaro */
+            flex-wrap: wrap; /* Permite quebrar linha em telas muito pequenas */
+        }
+
+        /* --- Estilo da Figurinha Bird (Ajustado) --- */
+        .bird-sticker {
+            /* Removemos position: absolute para evitar sobreposição */
+            width: 90px;
+            height: auto;
+            transform: rotate(15deg); 
+            filter: drop-shadow(4px 4px 2px rgba(0,0,0,0.4)); 
+            z-index: 15;
+            pointer-events: none;
+            margin-top: 10px; /* Ajuste fino vertical */
+        }
+
+        h1 {
+            font-family: 'Rock Salt', cursive;
+            font-size: 3.5rem; 
+            color: #000;
+            margin: 10px 0;
+            line-height: 1;
+            text-transform: uppercase;
+            letter-spacing: -2px;
+            position: relative;
+            z-index: 5;
+        }
+
+        .tape-center {
+            position: absolute;
+            top: -15px; left: 50%;
+            transform: translateX(-50%);
+            width: 180px; height: 40px;
+            background: rgba(255, 255, 255, 0.6);
+            border-left: 1px dashed rgba(0,0,0,0.2);
+            border-right: 1px dashed rgba(0,0,0,0.2);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+
+        /* --- NAVEGAÇÃO --- */
+        nav {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .nav-btn {
+            background: #ffeb3b;
+            color: #000;
+            padding: 10px 15px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            font-family: 'Permanent Marker', cursive;
+            transform: rotate(var(--rot));
+            transition: 0.2s;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+            border-bottom-right-radius: 20px 5px;
+            text-align: center;
+            width: 140px;
+        }
+        .nav-btn:hover, .nav-btn.active {
+            background: #ff9800;
+            transform: scale(1.1) rotate(0deg);
+            z-index: 100;
+            box-shadow: 5px 5px 10px rgba(0,0,0,0.4);
+        }
+
+        /* --- CONTAINERS GERAIS --- */
+        .paper-sheet {
+            background: #f4f4f4;
+            background-image: url('textura-de-papel-branco_1194-2301.jpg');
+            padding: 25px;
+            position: relative;
+            box-shadow: 4px 4px 15px rgba(0,0,0,0.4);
+            margin-bottom: 30px;
+            border: 1px solid #bbb;
+        }
+        
+        .lined-paper {
+            background-image: repeating-linear-gradient(transparent, transparent 29px, #add8e6 30px);
+            background-color: #fff;
+            line-height: 30px;
+        }
+
+        .pin {
+            width: 16px; height: 16px;
+            border-radius: 50%;
+            position: absolute; z-index: 20;
+            box-shadow: 2px 2px 3px rgba(0,0,0,0.5);
+        }
+        .pin.red { background: radial-gradient(circle at 30% 30%, #ff4444, #990000); }
+        .pin.blue { background: radial-gradient(circle at 30% 30%, #4444ff, #000099); }
+        .pin.metal { background: radial-gradient(circle at 30% 30%, #e0e0e0, #777); }
+        .pin-tl { top: 10px; left: 10px; }
+        .pin-tc { top: 10px; left: 50%; transform: translateX(-50%); }
+
+        .page-section { display: none; animation: popIn 0.3s; }
+        .page-section.active { display: block; }
+        @keyframes popIn {
+            0% { transform: scale(0.95); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* --- ESTILO DOS MEMBROS --- */
+        .polaroid-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .polaroid {
+            background: #fff;
+            padding: 12px 12px 40px 12px;
+            box-shadow: 4px 4px 6px rgba(0,0,0,0.4);
+            transform: rotate(var(--rot));
+            text-align: center;
+            transition: 0.3s;
+            width: 160px;
+            position: relative;
+        }
+        .polaroid::after {
+            content: '';
+            width: 12px; height: 12px;
+            background: radial-gradient(circle, #333, #000);
+            border-radius: 50%;
+            position: absolute; top: 5px; left: 50%; transform: translateX(-50%);
+            box-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        .polaroid:hover { transform: scale(1.15) rotate(0deg); z-index: 50; }
+        .polaroid img { 
+            width: 100%; height: 140px; object-fit: cover; 
+            filter: grayscale(100%) contrast(120%); 
+            border: 1px solid #ccc; 
+        }
+        .polaroid span { 
+            font-family: 'Permanent Marker'; font-size: 1.2rem; 
+            display: block; margin-top: 15px; color: #000; line-height: 1;
+        }
+        .polaroid small { 
+            font-family: 'VT323'; font-size: 1.1rem; color: #555; 
+            display: block; margin-top: 5px;
+        }
+
+        h2 {
+            font-family: 'Permanent Marker';
+            font-size: 2rem;
+            color: #000;
+            display: inline-block;
+            margin-top: 0;
+        }
+
+        /* --- LAYOUT SPACEHEY (GRID) --- */
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 30px;
+        }
+
+        .sidebar-profile { display: flex; flex-direction: column; gap: 20px; }
+
+        .profile-pic-container {
+            background: #fff;
+            padding: 10px 10px 40px 10px;
+            box-shadow: 3px 3px 8px rgba(0,0,0,0.3);
+            transform: rotate(-2deg);
+        }
+        .profile-pic-container img { width: 100%; border: 1px solid #000; }
+
+        /* --- ÍCONES SOCIAIS --- */
+        .social-row {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px dashed #999;
+        }
+        .social-icon {
+            display: inline-block;
+            transition: transform 0.2s;
+        }
+        .social-icon svg {
+            width: 32px;
+            height: 32px;
+            fill: #000;
+        }
+        
+        .social-icon:hover { transform: scale(1.2) rotate(-5deg); background: transparent !important; }
+        .social-icon.insta:hover svg { fill: #E1306C; }
+        .social-icon.spotify:hover svg { fill: #1DB954; }
+        .social-icon.youtube:hover svg { fill: #FF0000; }
+
+
+        /* FOOTER */
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            font-family: 'VT323';
+            font-size: 1.2rem;
+            padding: 10px;
+        }
+
+        /* RESPONSIVIDADE */
+        @media (max-width: 800px) {
+            .grid-layout { grid-template-columns: 1fr; }
+            .bulletin-board { padding: 15px; border-width: 15px; } 
+            h1 { font-size: 2.5rem; }
+            .sidebar-profile { flex-direction: row; flex-wrap: wrap; justify-content: center;}
+            .profile-pic-container { width: 180px; }
+            
+            /* Ajuste da figurinha no mobile */
+            .bird-sticker {
+                width: 60px;
+            }
+        }
+        @media (max-width: 500px) {
+            .sidebar-profile { flex-direction: column; align-items: center; }
+            .nav-btn { width: 45%; font-size: 1rem; }
+            .polaroid { width: 130px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loader">
+        <img src="jackass.png" alt="Carregando..." />
+    </div>
+
+    <div class="bulletin-board">
+        
+        <header>
+            <div class="tape-center"></div>
+            
+            <div class="title-wrapper">
+                <h1>BIRD BONES</h1>
+            </div>
+
+            <p style="font-family: 'VT323'; font-size: 1.5rem; background: #000; color: #fff; display: inline-block; padding: 0 10px;">PRIMEIRA BANDA DO MUNDO // EST. 2025</p>
+        </header>
+
+        <nav>
+            <div class="nav-btn active" onclick="showPage('home')" style="--rot: -2deg;">INÍCIO</div>
+            <div class="nav-btn" onclick="showPage('news')" style="--rot: 2deg;">NOTÍCIAS</div>
+            <div class="nav-btn" onclick="showPage('music')" style="--rot: -1deg;">MÚSICA</div>
+            <div class="nav-btn" onclick="showPage('gallery')" style="--rot: 3deg;">FOTOS</div>
+            <div class="nav-btn" onclick="showPage('guestbook')" style="--rot: 1deg;">RECADOS</div>
+        </nav>
+
+        <div id="page-home" class="page-section active">
+            <div class="grid-layout">
+                
+                <aside class="sidebar-profile">
+                    <div class="profile-pic-container">
+                        <div class="pin pin-tc red"></div>
+                        <img src="https://placehold.co/300x300/111/fff?text=BIRD+BONES" alt="Banda">
+                        <div style="font-family: 'Permanent Marker'; text-align: center; margin-top: 10px;">ONLINE</div>
+                    </div>
+                    
+                    <div class="paper-sheet" style="transform: rotate(1deg);">
+                        <div class="pin pin-tl metal"></div>
+                        <h3 style="margin-top:0; border-bottom: 2px dashed #000;">INFO</h3>
+                        <ul style="list-style: none; padding: 0; font-size: 0.9rem; line-height: 1.6;">
+                            <li><strong>Local:</strong> Itapetininga, SP</li>
+                            <li><strong>Gênero:</strong> Punk</li>
+                            <li><strong>Humor:</strong> Péssimo</li>
+                            <li><strong>Status:</strong> Falidos</li>
+                        </ul>
+                        
+                        <div style="margin-top: 15px; text-align: center;">
+                            <a href="#" style="background: #000; color: #fff; padding: 5px; font-size: 0.8rem; display:block;">NOS SIGA NAS REDES:</a>
+                        </div>
+
+                        <div class="social-row">
+                            <a href="#" class="social-icon insta" title="Instagram">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M224.1 141c-63.6 0-114.9 51.3-114.9 114.9s51.3 114.9 114.9 114.9S339 319.5 339 255.9 287.7 141 224.1 141zm0 189.6c-41.1 0-74.7-33.5-74.7-74.7s33.5-74.7 74.7-74.7 74.7 33.5 74.7 74.7-33.5 74.7-74.7 74.7zm146.4-194.3c0 14.9-12 26.8-26.8 26.8-14.9 0-26.8-12-26.8-26.8s12-26.8 26.8-26.8 26.8 12 26.8 26.8zm76.1 27.2c-1.7-35.9-9.9-67.7-36.2-93.9-26.2-26.2-58-34.4-93.9-36.2-37-2.1-147.9-2.1-184.9 0-35.8 1.7-67.6 9.9-93.9 36.1s-34.4 58-36.2 93.9c-2.1 37-2.1 147.9 0 184.9 1.7 35.9 9.9 67.7 36.2 93.9s58 34.4 93.9 36.2c37 2.1 147.9 2.1 184.9 0 35.9-1.7 67.7-9.9 93.9-36.2 26.2-26.2 34.4-58 36.2-93.9 2.1-37 2.1-147.9 0-184.9zM398.8 388c-7.8 19.6-22.9 34.7-42.6 42.6-29.5 11.7-99.5 9-132.1 9s-102.7 2.6-132.1-9c-19.6-7.8-34.7-22.9-42.6-42.6-11.7-29.5-9-99.5-9-132.1s-2.6-102.7 9-132.1c7.8-19.6 22.9-34.7 42.6-42.6 29.5-11.7 99.5-9 132.1-9s102.7-2.6 132.1 9c19.6 7.8 34.7 22.9 42.6 42.6 11.7 29.5 9 99.5 9 132.1s2.7 102.7-9 132.1z"/></svg>
+                            </a>
+                            
+                            <a href="#" class="social-icon spotify" title="Spotify">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path d="M248 8C111.1 8 0 119.1 0 256s111.1 248 248 248 248-111.1 248-248S384.9 8 248 8zm113.3 350.7c-4.4 7.3-14 9.6-21.2 5.1-58.4-35.6-131.9-43.6-218.4-23.9-8.3 1.9-16.7-3.4-18.6-11.6-1.9-8.2 3.4-16.6 11.6-18.6 94.6-21.6 174.9-12.2 241.5 28.3 7.3 4.5 9.6 14 5.1 21.2zm11.7-52.4c-5.5 8.9-17.1 11.7-26.1 6.1-65.4-40.2-164.8-51.8-241.9-28.3-9.9 3-20.5-2.6-23.5-12.5-3-9.9 2.6-20.5 12.5-23.5 87.8-26.7 197.6-13 273 33.3 9 5.5 11.7 17.1 6.1 26.1zm1.2-54.2c-78.5-46.6-208.2-50.9-283.2-28.1-11.4 3.5-23.6-3-27.1-14.4-3.5-11.4 3-23.6 14.4-27.1 84.7-25.7 226.7-20.7 315.8 32.2 10.3 6.1 13.6 19.4 7.5 29.7-6.1 10.3-19.4 13.6-29.7 7.5z"/></svg>
+                            </a>
+
+                            <a href="#" class="social-icon youtube" title="YouTube">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><path d="M549.7 124.1c-6.3-23.7-24.8-42.3-48.3-48.6C458.8 64 288 64 288 64S117.2 64 74.6 75.5c-23.5 6.3-42 24.9-48.3 48.6-11.4 42.9-11.4 132.3-11.4 132.3s0 89.4 11.4 132.3c6.3 23.7 24.8 41.5 48.3 47.8C117.2 448 288 448 288 448s170.8 0 213.4-11.5c23.5-6.3 42-24.2 48.3-47.8 11.4-42.9 11.4-132.3 11.4-132.3s0-89.4-11.4-132.3zm-317.5 213.5V175.2l142.7 81.2-142.7 81.2z"/></svg>
+                            </a>
+                        </div>
+                    </div>
+                </aside>
+
+                <main>
+                    <div class="paper-sheet" style="transform: rotate(-0.5deg);">
+                        <div class="pin pin-tl blue"></div>
+                        <h2 style="border-bottom: 3px solid #000;">SOBRE NÓS</h2>
+                        <p>Nós somos o <strong>BIRD BONES</strong>. Fazemos barulho porque é mais barato que terapia.</p>
+                        <p>Se você gosta de música boa tocada por gente estranha, seu lugar é aqui</p>
+                    </div>
+
+                    <div style="margin-top: 40px; text-align: center;">
+                        <h2 style="transform: rotate(2deg); background: #f00; color: #fff; padding: 5px 20px; border: 2px solid #fff; box-shadow: 4px 4px 0 rgba(0,0,0,0.5);">OS CRIMINOSOS</h2>
+                        
+                        <div class="polaroid-container">
+                            <div class="polaroid" style="--rot: 3deg;">
+                                <img src="https://placehold.co/150x150/222/fff?text=MARI JOANA">
+                                <span>MARI JOANA</span>
+                                <small>VOCAL</small>
+                            </div>
+                            <div class="polaroid" style="--rot: -2deg;">
+                                <img src="https://placehold.co/150x150/222/fff?text=MAKO">
+                                <span>MAKO</span>
+                                <small>GUITARRA</small>
+                            </div>
+                            <div class="polaroid" style="--rot: 1deg;">
+                                <img src="https://placehold.co/150x150/222/fff?text=RISSA">
+                                <span>RISSA</span>
+                                <small>BATERIA</small>
+                            </div>
+                            <div class="polaroid" style="--rot: -3deg;">
+                                <img src="https://placehold.co/150x150/222/fff?text=LUCK">
+                                <span>LUCK</span>
+                                <small>BAIXO</small>
+                            </div>
+                            <div class="polaroid" style="--rot: 2deg;">
+                                <img src="https://placehold.co/150x150/222/fff?text=MATTY">
+                                <span>MATTY</span>
+                                <small>GUITARRA</small>
+                            </div>
+                        </div>
+                    </div>
+
+                </main>
+            </div>
+        </div>
+
+        <div id="page-news" class="page-section">
+            <div class="paper-sheet lined-paper" style="max-width: 800px; margin: 0 auto; min-height: 500px;">
+                <div class="pin pin-tc red"></div>
+                <h2 style="text-align: center; display: block; border: none; text-decoration: underline;">ÚLTIMAS NOTÍCIAS</h2>
+                
+                <div style="margin-bottom: 30px;">
+                    <span style="background: #000; color: #fff; padding: 2px 8px; font-family: 'VT323'; font-size: 1.2rem;">15/01/2026</span>
+                    <h3 style="margin: 5px 0;">Ficaram sabendo?</h3>
+                    <p>Não? Eu tbm não kkkkkkkkkkkkkkkkkkk</p>
+                </div>
+
+                <div style="margin-bottom: 30px;">
+                    <span style="background: #000; color: #fff; padding: 2px 8px; font-family: 'VT323'; font-size: 1.2rem;">02/01/2026</span>
+                    <h3 style="margin: 5px 0;">meu nome é samara</h3>
+                    <p>Oi meu nome é Samara, tenho 14 anos (Teria se estivesse viva), morri aos 13 em Cascavel-PR. Eu andava de bicicleta Quando não pude desviar de um arame farpado. O pior foi que o dono do lote não quis me ajudar, riu bastante mim após agonizar por 2 horas enroscada no arame eu faleci, através dessa mensagem eu peço que façam com que eu possa descançar em paz. Envie isso para 20 comunidades e minha alma estara sendo salva por você e pelos outros 20 que receberão. Caso não repasse essa mensagem vou visitar-lhe hoje a noite assim vc poderá conhecer o tal arame bem de pertinho. Dia 15 de Julho Mariana resolveu rir dessa mensagem, uma noite depois ela sumiu sem deixar vestigios. O mesmo aconteceu com Kare dia 18 de Outubro. Não Quebre essa corrente por favor, a não ser que queira sentir a minha presença</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="page-music" class="page-section">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 30px;">
+                
+                <div style="width: 100%; max-width: 320px;">
+                    <iframe width="0" height="0" src="https://www.youtube.com/embed/KvknOXGPzCQ?autoplay=1&loop=1" title="music" frameborder="0" allow="autoplay" loading="lazy"></iframe>
+                    <style>
+                    /* customization */
+                    :root {
+                        --artist:"BIRD BONES";
+                        --title:"ASTRO ITAPETININGANO";
+                        --albumcover: url(https://placehold.co/300x300/222/fff?text=ROTTEN+WING);
+                    }
+
+                    /* the code itself */
+                    .status-bar,.title-bar,.title-bar-controls{display:flex}.window,p#butt{background:silver;margin:auto}p#text,p#text2{box-shadow:inset -1px -1px #fff,inset 1px 1px grey,inset -2px -2px #dfdfdf,inset 2px 2px #0a0a0a;box-sizing:border-box;margin-block:3px}p#butt,p#text,p#text2{box-sizing:border-box}p#label,p#text,p#text2{margin-block:3px}.status-bar,.title-bar-text,.toptoptop,p#butt,p#label,p#text2{user-select:none}@font-face{font-family:"Pixelated MS Sans Serif";font-style:normal;font-weight:400;src:url(https://unpkg.com/98.css@0.1.20/dist/ms_sans_serif.woff) format("woff");src:url(https://unpkg.com/98.css@0.1.20/dist/ms_sans_serif.woff2) format("woff2")}@font-face{font-family:"Pixelated MS Sans Serif";font-style:normal;font-weight:700;src:url(https://unpkg.com/98.css@0.1.20/dist/ms_sans_serif_bold.woff) format("woff");src:url(https://unpkg.com/98.css@0.1.20/dist/ms_sans_serif_bold.woff2) format("woff2")}.window{text-shadow:none;box-shadow:inset -1px -1px #0a0a0a,inset 1px 1px #dfdfdf,inset -2px -2px grey,inset 2px 2px #fff;padding:3px}.window img{filter:none!important}.window *{-webkit-font-smoothing:none;font-family:"Pixelated MS Sans Serif",Arial;font-size:11px;text-shadow:inherit}.title-bar{align-items:center;background:linear-gradient(90deg,navy,#1084d0);justify-content:space-between}.title-bar-text{color:#fff;font-weight:700;letter-spacing:0;margin-right:24px;line-height:15px}.title-bar-controls p#butt{display:block;min-height:14px;min-width:16px;padding:0}.title-bar-controls p#butt:active{padding:0}.title-bar-controls p#butt:focus{outline:0}.title-bar-controls p#butt.minimize{background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg width='6' height='2' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill='%23000' d='M0 0h6v2H0z'/%3E%3C/svg%3E");background-position:bottom 3px left 4px;background-repeat:no-repeat}.title-bar-controls p#butt.maximize{background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg width='9' height='9' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M9 0H0v9h9V0zM8 2H1v6h7V2z' fill='%23000'/%3E%3C/svg%3E");background-position:top 2px left 3px;background-repeat:no-repeat}.title-bar-controls p#butt.close{background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg width='8' height='7' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M0 0h2v1h1v1h2V1h1V0h2v1H7v1H6v1H5v1h1v1h1v1h1v1H6V6H5V5H3v1H2v1H0V6h1V5h1V4h1V3H2V2H1V1H0V0z' fill='%23000'/%3E%3C/svg%3E");background-position:top 3px left 4px;background-repeat:no-repeat;margin-left:2px}.status-bar{gap:1px;margin:0 1px}p#butt{white-space:nowrap;}.buttontos,p#butt,p#label,p#text,p#text2{display:inline-block}.status-bar-field{box-shadow:inset -1px -1px #dfdfdf,inset 1px 1px grey;flex-grow:1;margin:0;padding:2px 3px}.window-body{margin:8px}p#butt{border:none;border-radius:0;min-height:23px;min-width:75px;padding:6px 12px 0;text-shadow:0 0 #222;box-shadow:inset -1px -1px #0a0a0a,inset 1px 1px #fff,inset -2px -2px grey,inset 2px 2px #dfdfdf;color:#000}p#butt:active{box-shadow:inset -1px -1px #fff,inset 1px 1px #0a0a0a,inset -2px -2px #dfdfdf,inset 2px 2px grey;text-shadow:1px 1px #222}p#butt:focus{outline:#000 dotted 1px;outline-offset:-4px}p#butt::-moz-focus-inner{border:0}.toptoptop{text-align:left;margin-top:-3px!important;margin-bottom:5px!important;margin-inline:0px!important;}.toptoptop span{border:1px solid silver;padding:2px 4px}.toptoptop span:hover{border-top:1px solid #fff;border-left:1px solid #fff;border-bottom:1px solid gray;border-right:1px solid gray}.toptoptop span:focus{border:1px inset #fff}.window{color:#000!important;font-family:"Pixelated MS Sans Serif"!important}p#text:active{background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='17' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M0 0h16v17H0V0zm1 16h14V1H1v15z' fill='gray'/%3E%3Cpath fill='silver' d='M1 1h14v15H1z'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M12 7H5v1h1v1h1v1h1v1h1v-1h1V9h1V8h1V7z' fill='%23000'/%3E%3C/svg%3E")}p#text{background-color:#fff;padding:4px;width:85%;text-align:left;font-size:12px;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='17' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M15 0H0v16h1V1h14V0z' fill='%23DFDFDF'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M2 1H1v14h1V2h12V1H2z' fill='%23fff'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M16 17H0v-1h15V0h1v17z' fill='%23000'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M15 1h-1v14H1v1h14V1z' fill='gray'/%3E%3Cpath fill='silver' d='M2 2h12v13H2z'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M11 6H4v1h1v1h1v1h1v1h1V9h1V8h1V7h1V6z' fill='%23000'/%3E%3C/svg%3E");background-position:top 2px right 2px;background-repeat:no-repeat}p#text.artist:after{content:var(--artist)}p#text.title:after{content:var(--title)}p#text2:before{content:"";display:block;position:absolute;top:1px;left:1px;background:var(--albumcover);width:98%;height:96%;opacity:.5;background-size:cover;background-position:center;z-index:-1}p#text2{position:relative;padding:13px 4px;width:54%;font-size:20px;text-align:center;color:olive;background:#000;z-index:999}#butt,p#label{font-size:12px}p#label{width:fit-content;margin-right:5px}.ahhh{text-align:right}.title-bar{padding:2px}.title-bar-text img{vertical-align:bottom;margin-inline:2px}.buttontos{width:45%;height:54px;vertical-align:top;text-align:center}#butt{color:#000;text-shadow:1px 1px #fff;line-height:10px}#butt:not(:first-child){text-indent:-5px;font-weight:700}#butt:nth-child(3) span{display:block;transform:translate(2px,-2px) scale(1.2)}#butt:not(:first-child,:nth-child(2),:nth-child(3)){text-indent:-8px;font-weight:700;letter-spacing:-4px;font-size:10px}#butt:nth-child(8){text-indent:-8px;font-weight:700;letter-spacing:-1.5px;white-space:nowrap;text-shadow:none;transform:translateY(1px)}#butt:nth-child(8) span{display:block;transform:rotate(-90deg) translate(2px,0) scaleY(1.4);color:#000}.title,.artist{height:23px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;padding-right:20px!important;vertical-align: bottom;}
+                    </style>
+                    <div class="window" style="width:320px">
+                        <div class="title-bar">
+                            <div class="title-bar-text"><img src="https://images2.imgbox.com/42/89/JIRoQjUo_o.png"/>CD Player</div>
+                            <div class="title-bar-controls"><p id="butt" class="minimize"></p><p id="butt" class="maximize"></p><p id="butt" class="close"></p></div>
+                        </div>
+                        <div class="window-body">
+                            <p class="toptoptop"><span><u>D</u>isc</span> <span><u>V</u>iew</span> <span><u>O</u>ptions</span> <span><u>H</u>elp</span></p>
+                            <p id="text2">[00] 00:00</p>
+                            <div class="buttontos"><p id="butt">▶ </p><p id="butt" style="min-width:20px;max-width:20px;margin-inline:0px">❚❚ </p><p id="butt" style="min-width:20px;max-width:20px"><span>◼</span> </p><p id="butt" style="min-width:20px;max-width:20px;margin-top:5px">❚◄◄ </p><p id="butt" style="min-width:20px;max-width:20px;margin-top:5px;margin-left:0px">◄◄ </p><p id="butt" style="min-width:20px;max-width:20px;margin-top:5px;margin-left:0px">►► </p><p id="butt" style="min-width:20px;max-width:20px;margin-top:5px;margin-left:0px">►►❚ </p><p id="butt" style="min-width:20px;max-width:20px;margin-top:5px;margin-left:0px"><span>❚ ►</span></p></div>
+                            <div class="ahhh"><p id="label"><u>A</u>rtist:</p><p id="text" class="artist"></p><p id="label">Title:</p><p id="text" class="title"></p></div>
+                        </div>
+                        <div class="status-bar"><p class="status-bar-field">Total Play: 00:00 m:s</p><p class="status-bar-field">Track: 00:00 m:s</p></div>
+                    </div>
+                </div>
+                <div class="paper-sheet" style="width: 100%; max-width: 600px; transform: rotate(1deg);">
+                    <div class="pin pin-tc red"></div>
+                    <h3>DISCOGRAFIA</h3>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="border-bottom: 1px dashed #000; padding: 5px 0;">01. Astro Itapetinigano</li>
+                        <li style="border-bottom: 1px dashed #000; padding: 5px 0;">02. Vidro e Gravata</li>
+                        <li style="border-bottom: 1px dashed #000; padding: 5px 0;">03. outra musica.mp3</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div id="page-gallery" class="page-section">
+            <div class="paper-sheet" style="background: #111; border: 4px solid #fff;">
+                <div class="pin pin-tl metal"></div>
+                <h2 style="color: #fff; text-align: center; border-color: #fff; display: block;">MURAL DE FOTOS</h2>
+                
+                <div class="polaroid-container">
+                    <div class="polaroid" style="--rot: 3deg; height: auto;">
+                        <img src="https://placehold.co/150x150/222/fff?text=SHOW">
+                    </div>
+                    <div class="polaroid" style="--rot: -2deg; height: auto;">
+                        <img src="https://placehold.co/150x150/333/fff?text=ENSAIO">
+                    </div>
+                    <div class="polaroid" style="--rot: 1deg; height: auto;">
+                        <img src="https://placehold.co/150x150/444/fff?text=RUA">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="page-guestbook" class="page-section">
+            <div class="paper-sheet" style="max-width: 700px; margin: 0 auto; transform: rotate(1deg);">
+                <div class="pin pin-tc red"></div>
+                <h2 style="text-align: center; display: block;">DEIXE UM RECADO</h2>
+                
+                <div style="margin: 20px 0; border: 1px dashed #000; padding: 15px; background: #f9f9f9;">
+                    <input type="text" id="g-name" placeholder="Seu nome" style="width: 100%; padding: 8px; margin-bottom: 10px; font-family: 'Special Elite';">
+                    <textarea id="g-msg" placeholder="Escreva algo meo..." style="width: 100%; height: 80px; padding: 8px; font-family: 'Special Elite';"></textarea>
+                    <button onclick="addComment()" style="background: #000; color: #fff; border: none; padding: 10px 20px; font-family: 'Permanent Marker'; cursor: pointer; margin-top: 10px;">ENVIAR</button>
+                </div>
+
+                <div id="comments-list">
+                    <div style="background: #eee; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc;">
+                        <strong>Punk88 diz:</strong><br>vcs jogaram lixo no meu quintal semana passada. vou chamar os meus advogados                </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <div style="display: flex; justify-content: center; gap: 5px; margin-bottom: 10px;">
+                <img src="https://cyber.dabamos.de/88x31/besteyes.gif">
+                <img src="https://cyber.dabamos.de/88x31/button25.gif">
+                <img src="https://cyber.dabamos.de/88x31/antinazi.gif">
+                <img src="https://cyber.dabamos.de/88x31/aponow.gif">
+            </div>
+            <p>DESIGNED IN HELL // HOSTED ON NEOCITIES // © 2026</p>
+        </footer>
+
+    </div>
+
+    <script>
+        // --- SCRIPT DO LOADING ---
+        window.addEventListener('load', function() {
+            // Pequeno delay opcional para ver a animação (pode remover o setTimeout se quiser instantâneo)
+            setTimeout(function() {
+                var loader = document.getElementById('loader');
+                loader.classList.add('hidden');
+                
+                // Remove do DOM após a transição para não clicar sem querer
+                setTimeout(() => {
+                    loader.style.display = 'none';
+                }, 800);
+            }, 1000); // Espera 1 segundo antes de sumir
+        });
+
+        // --- SCRIPT ORIGINAL ---
+        function showPage(pageId) {
+            document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById('page-' + pageId).classList.add('active');
+            const btns = document.querySelectorAll('.nav-btn');
+            for (let btn of btns) {
+                if (btn.getAttribute('onclick').includes(pageId)) {
+                    btn.classList.add('active');
+                }
+            }
+        }
+
+        function addComment() {
+            const name = document.getElementById('g-name').value;
+            const msg = document.getElementById('g-msg').value;
+            if(name && msg) {
+                const div = document.createElement('div');
+                div.style.cssText = 'background: #eee; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc;';
+                div.innerHTML = `<strong>${name} diz:</strong><br>${msg}`;
+                document.getElementById('comments-list').prepend(div);
+                document.getElementById('g-name').value = '';
+                document.getElementById('g-msg').value = '';
+            } else {
+                alert("Escreva algo!");
+            }
+        }
+    </script>
+</body>
+</html>
